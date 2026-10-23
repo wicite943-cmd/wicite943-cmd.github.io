@@ -127,6 +127,9 @@
       const pid = (found.files[0].parents || [])[0];
       if (pid) try { cfg.folder = (await (await call('GET', `${API}/files/${pid}?fields=name`)).json()).name || FOLDER_NAME; } catch { }
     } else {
+      // 휴대폰 앱이 만든 공유 파일을 못 찾았을 때 새로 만들면 일정이 두 갈래로 나뉠 수 있어, 만들지 않고 알림
+      throw new Error('구글 드라이브에서 바탕달력_공유데이터.json 을 찾지 못했어요. 휴대폰 앱과 같은 구글 계정으로 로그인했는지 확인하세요.');
+      // eslint-disable-next-line no-unreachable
       const folder = await (await call('POST', `${API}/files?fields=id`, JSON.stringify({ name: FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' }), 'application/json')).json();
       const b = 'deskcal' + Date.now();
       const meta = JSON.stringify({ name: FILE_NAME, mimeType: 'application/json', parents: [folder.id] });

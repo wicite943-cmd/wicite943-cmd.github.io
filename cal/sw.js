@@ -1,5 +1,5 @@
 /* 오프라인에서도 열리게: 앱 파일만 보관 (구글 로그인·드라이브 통신은 보관하지 않음) */
-const CACHE = 'deskcal-9f5b564a25';
+const CACHE = 'deskcal-203315be72';
 const FILES = ['./',
   './app.js',
   './apple-touch-icon.png',
