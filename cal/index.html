@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="바탕달력" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <title>바탕달력</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="web.css" />
+</head>
+<body>
+  <div id="app">
+    <section id="main">
+      <header id="top">
+        <div class="nav">
+          <div class="vm" id="vm" title="보기 방식"><button data-v="month">한 달</button><button data-v="rolling">5주</button></div>
+        </div>
+        <div class="center">
+          <button class="arrow" id="prev" title="이전"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+          <time id="title" title="오늘로"></time>
+          <button class="arrow" id="next" title="다음"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+          <button class="todaybtn" id="today" title="오늘로 이동">오늘</button>
+          <span id="print-stamp"></span>
+        </div>
+        <div class="tools">
+          <div id="editpill">편집 중 <button id="btn-done">끝내기 (Esc)</button></div>
+          <span id="sync-ind" class="sync-ind" hidden title="여러 컴퓨터 공유 중">☁</span>
+          <input type="range" id="opacity" min="15" max="100" title="투명도" />
+          <button class="hb" id="btn-icons" title="아이콘 배치"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M8.8 14.2c.8 1.1 1.9 1.7 3.2 1.7s2.4-.6 3.2-1.7"/><path d="M9.2 9.8h.01M14.8 9.8h.01" stroke-width="2.6"/></svg></button>
+          <button class="hb" id="btn-pin" title="위치 고정"><svg viewBox="0 0 24 24"><path d="M9 4h6l-1 6 3 3H7l3-3-1-6z"/><path d="M12 13v7"/></svg></button>
+          <button class="hb" id="btn-hide" title="숨기기"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+          <button class="hb" id="btn-set" title="설정"><svg viewBox="0 0 24 24"><path d="M12 3l7.8 4.5v9L12 21l-7.8-4.5v-9z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button class="hb" id="btn-side" title="사이드바"><svg viewBox="0 0 24 24"><rect x="4" y="4.5" width="16" height="15" rx="2"/><path d="M14.5 4.5v15"/></svg></button>
+        </div>
+      </header>
+      <div id="ddays"></div>
+      <div id="weekdays"></div>
+      <div id="board">
+        <div id="grid"></div>
+        <div id="bar-labels"></div>
+        <div id="icon-layer"></div>
+        <div id="drop-hint">여기에 놓으면 바로가기 아이콘이 생겨요</div>
+      </div>
+      <!-- 아이콘 팔레트 -->
+      <section id="palette" hidden>
+        <div class="pal-head">
+          <div class="pal-tabs" id="pal-tabs"></div>
+          <div class="pal-actions">
+            <button class="pill" id="pal-image">이미지</button>
+            <button class="pill" id="pal-file">파일</button>
+            <button class="pill" id="pal-folder">폴더</button>
+            <button class="pill" id="pal-link">웹 주소</button>
+            <label class="scope"><input type="checkbox" id="pal-month" /> 이번 달에만</label>
+            <button class="pill primary" id="pal-done">완료</button>
+          </div>
+        </div>
+        <div class="pal-grid" id="pal-grid"></div>
+      </section>
+    </section>
+
+    <!-- 사이드바 (스케두) -->
+    <aside id="side" hidden>
+      <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg><input id="q" placeholder="검색" /></div>
+      <div class="side-nav">
+        <button class="hb sm" id="s-prev"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <span id="side-date"></span>
+        <button class="hb sm" id="s-next"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+        <select id="side-type"><option>일</option><option>주</option><option>월</option></select>
+      </div>
+      <div id="side-list"></div>
+    </aside>
+  </div>
+
+
+  <!-- 일정 입력 (스케두 형식) -->
+  <div class="backdrop" id="ev-modal" hidden>
+    <form class="modal" id="ev-form" autocomplete="off">
+      <div class="row between"><label class="lbl nomb">일정명</label><button type="button" class="copybtn" id="b-copy" title="이 일정을 복사해서 새 일정 만들기">⧉ 복사</button></div>
+      <div class="titlerow"><input id="f-title" class="inp" placeholder="일정명을 입력하세요" /><button type="button" id="f-sticker" title="스티커 붙이기"><span class="none"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-dasharray="2.2 2.2"/><circle cx="9.2" cy="10.2" r=".6" fill="currentColor"/><circle cx="14.8" cy="10.2" r=".6" fill="currentColor"/><path d="M8.6 14c.9 1.2 2 1.8 3.4 1.8s2.5-.6 3.4-1.8"/></svg></span><span class="em"></span></button></div>
+      <div id="stk-pop" hidden><div class="stk-tabs"></div><div class="stk-grid"></div><button type="button" class="stk-clear">스티커 빼기</button></div>
+      <div class="row between mt">
+        <label class="lbl nomb">일정</label>
+        <label class="switch"><span>종일</span><input type="checkbox" id="f-allday" /><i></i></label>
+      </div>
+      <div class="row dates">
+        <input type="date" id="f-sdate" class="inp d" />
+        <input type="text" id="f-stime" class="inp t" maxlength="5" placeholder="09:00" inputmode="numeric" />
+        <span class="tilde">~</span>
+        <input type="date" id="f-edate" class="inp d" />
+        <input type="text" id="f-etime" class="inp t" maxlength="5" placeholder="10:00" inputmode="numeric" />
+      </div>
+      <div class="row line">
+        <label class="lbl inl">반복</label>
+        <select id="f-repeat" class="inp"></select>
+      </div>
+      <div class="row line" id="until-row">
+        <label class="lbl inl">종료</label>
+        <input type="date" id="f-until" class="inp d" /><span class="note">까지 (비우면 계속)</span>
+      </div>
+      <div class="row line">
+        <label class="lbl inl">위치</label>
+        <div class="join">
+          <input id="f-loc" class="inp" placeholder="위치를 입력하세요" />
+          <button type="button" class="sbtn" id="f-locsearch" title="지도에서 찾기"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg></button>
+        </div>
+      </div>
+      <div class="row line">
+        <label class="lbl inl">알림</label>
+        <select id="f-alarm" class="inp auto"></select><span class="note" id="alarm-unit">일전</span>
+      </div>
+      <div class="row line">
+        <label class="lbl inl wide">캘린더 / 색상</label>
+        <div class="calsel">
+          <button type="button" id="f-calbtn"><i></i><span></span><svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5"/></svg></button>
+          <button type="button" id="f-colbtn" title="일정 색상"><i></i></button>
+        </div>
+      </div>
+      <div class="row line">
+        <label class="lbl inl wide">D-day</label>
+        <label class="switch"><input type="checkbox" id="f-dday" /><i></i><span>달력 위쪽에 D-day 카드로 띄우기</span></label>
+      </div>
+      <div class="row line">
+        <label class="lbl inl wide">휴일</label>
+        <label class="switch"><input type="checkbox" id="f-holiday" /><i></i><span>빨간 날로 표시 (재량휴업일·개교기념일 등)</span></label>
+      </div>
+      <div class="row line" id="order-row">
+        <label class="lbl inl wide">같은 날 순서</label>
+        <div class="ord">
+          <button type="button" data-dir="top" title="맨 위로">⤒ 맨 위로</button>
+          <button type="button" data-dir="up" title="한 칸 위로">▲</button>
+          <button type="button" data-dir="down" title="한 칸 아래로">▼</button>
+          <button type="button" data-dir="bottom" title="맨 아래로">⤓</button>
+        </div>
+        <span class="note" id="ord-pos"></span>
+      </div>
+      <label class="lbl mt">상세내용</label>
+      <textarea id="f-memo" class="inp" rows="4"></textarea>
+      <div class="foot">
+        <button type="button" class="btn gray" data-close>취소</button>
+        <button type="button" class="btn green" id="b-done">완료</button>
+        <button type="submit" class="btn blue" id="b-save">추가</button>
+        <button type="button" class="btn red" id="b-del">삭제</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- 설정 -->
+  <div class="backdrop" id="set-modal" hidden>
+    <div class="modal wide">
+      <div class="m-head"><b>설정</b><span class="ver" id="app-ver"></span><button type="button" class="hb sm" data-close><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+      <div class="set-row"><span>테마</span><div class="seg" id="s-theme"><button data-v="0">라이트</button><button data-v="1">다크</button></div></div>
+      <div class="set-row"><span>확대/축소</span><div class="seg" id="s-zoom"><button data-v="0.85">아주작게</button><button data-v="0.92">작게</button><button data-v="1">보통</button><button data-v="1.1">크게</button><button data-v="1.22">아주크게</button></div></div>
+      <div class="set-row"><span>보기 방식</span><div class="seg" id="s-view"><button data-v="month">한 달</button><button data-v="rolling">5주 (이번 주가 2번째 줄)</button></div></div>
+      <div class="set-row"><span>주 시작</span><div class="seg" id="s-week"><button data-v="0">일요일</button><button data-v="1">월요일</button></div></div>
+      <div class="set-row"><span>바탕화면</span>
+        <label class="chk"><input type="checkbox" id="s-desk" /> 바탕화면 더블클릭으로 일정 입력</label></div>
+      <div class="set-row"><span>표시</span>
+        <label class="chk"><input type="checkbox" id="s-holiday" /> 공휴일</label>
+        <label class="chk"><input type="checkbox" id="s-sound" /> 알림소리</label>
+        <label class="chk"><input type="checkbox" id="s-auto" /> 부팅시 실행</label></div>
+      <div class="set-row"><span>못 끝낸 일정</span>
+        <label class="chk"><input type="checkbox" id="s-missdot" /> 빨간 점 표시</label>
+        <label class="chk"><input type="checkbox" id="s-misscarry" /> 오늘 칸으로 넘겨 보이기 (최근 30일)</label></div>
+      <div class="set-row top"><span>캘린더</span><div id="s-cals" class="cal-list"></div></div>
+      <div class="set-row"><span>학사일정</span>
+        <button class="pill primary" id="s-import-school">학사일정 한 번에 넣기</button>
+        <span class="note small">엑셀·한글 학사일정표를 복사해서 붙여넣기</span></div>
+      <div class="set-row top"><span>구글 드라이브<br/>공유</span>
+        <div class="syncbox">
+          <div id="sync-state" class="sync-state"></div>
+          <div class="row">
+            <button class="pill primary" id="s-sync-choose">공유 폴더 고르기</button>
+            <button class="pill" id="s-sync-now">지금 맞추기</button>
+            <button class="pill" id="s-sync-off">공유 끄기</button>
+          </div>
+          <label class="chk"><input type="checkbox" id="s-autopdf" /> 일정이 바뀌면 공유 폴더에 PDF(<b>바탕달력_달력.pdf</b>)도 저장 — PC에서 휴대폰 없이 볼 때 (기본: 끔 · 메모리를 더 씀)</label>
+          <div class="row"><button class="pill" id="s-pdf-now">지금 PDF 만들기</button><span class="note small" id="pdf-state"></span></div>
+          <p class="hint web-hint">[구글 로그인으로 연결]을 누르면 휴대폰 앱·PC와 같은 <b>바탕달력_공유데이터.json</b>(구글 드라이브 <b>바탕달력_공유</b> 폴더)으로 일정을 맞춰요. 권한은 이 앱이 만든 파일만 볼 수 있는 최소 권한이에요. 로그인은 한 시간쯤 지나면 다시 확인하는데, 보통 저절로 넘어가요. 머리줄의 ☁ 가 깜빡이면 눌러서 다시 로그인하세요.</p>
+          <p class="hint">휴대폰 바탕달력 앱은 설정 → [공유 파일 직접 고르기]에서 이 폴더의 <b>바탕달력_공유데이터.json</b>을 고르면 함께 맞춰져요. 구글 드라이브의 <b>내 드라이브</b> 안에 '바탕달력' 같은 폴더를 하나 만들고 고르세요. 다른 컴퓨터에서도 <b>같은 폴더</b>를 고르면 일정이 합쳐지고, 이후로는 한쪽에서 고치면 몇 초 안에 다른 쪽에도 반영돼요. (창 위치·투명도 같은 설정은 컴퓨터마다 따로)</p>
+        </div></div>
+      <div class="set-row"><span>데이터</span>
+        <button class="pill" id="s-export">백업 저장</button>
+        <button class="pill" id="s-import">백업 불러오기</button>
+        <button class="pill" id="s-clear-icons">아이콘 모두 지우기</button>
+        <button class="pill" id="s-quit">프로그램 종료</button></div>
+      <p class="hint" id="set-hint">바탕화면 빈 곳에서 날짜 칸 더블클릭 → 일정 추가 · 일정 더블클릭 → 수정 · 달 넘기기: ‹ › 화살표 또는 달력 위에서 마우스 휠<br/>Ctrl+Shift+X → 편집 모드(창 옮기기·크기 조절·설정) ↔ 바탕화면으로</p>
+    </div>
+  </div>
+
+  <div class="backdrop" id="imp-modal" hidden>
+    <div class="modal wide imp">
+      <div class="m-head"><b>학사일정 한 번에 넣기</b><button type="button" class="hb sm" data-close><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+      <div class="row imp-opts">
+        <label class="lbl inl wide">학년도</label><select id="imp-year" class="inp auto"></select>
+        <label class="lbl inl wide">넣을 캘린더</label><select id="imp-cal" class="inp auto"></select>
+      </div>
+      <textarea id="imp-text" class="inp" rows="7" placeholder="엑셀·한글·메모장의 학사일정을 그대로 붙여넣으세요.&#10;예) 3월 2일(월) 입학식&#10;    3.9~3.11 수련회&#10;    5.4 재량휴업일&#10;    (엑셀) 6 ⇥ 5 ⇥ 금 ⇥ 현장체험학습"></textarea>
+      <div class="imp-sum" id="imp-sum">붙여넣으면 아래에 미리보기가 나와요.</div>
+      <div class="imp-list" id="imp-list"></div>
+      <div class="foot"><button type="button" class="btn gray" data-close>취소</button><button type="button" class="btn blue" id="imp-go" disabled>넣기</button></div>
+    </div>
+  </div>
+  <div id="ctx" class="ctx" hidden></div>
+  <div id="toast" class="toast" hidden></div>
+  <div id="undo" class="undo" hidden><span id="undo-msg"></span><button id="undo-btn" type="button">되돌리기</button></div>
+
+  <script src="recur.js"></script>
+  <script src="importer.js"></script>
+  <script src="holidays.js"></script>
+  <button id="web-add" type="button" aria-label="새 일정">＋</button>
+  <script src="config.js"></script>
+  <script src="webapi.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

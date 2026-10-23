@@ -1,0 +1,77 @@
+/* 바탕달력 아이패드 웹앱 — PC 화면 위에 덧씌우는 터치용 모양 (아이패드 미니 7: 세로 744×1133, 가로 1133×744) */
+html, body { background: rgb(var(--app)); height: 100%; }
+body.web { font-size: 15px; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; overscroll-behavior: none; }
+body.web #app { border-radius: 0; inset: 0; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); box-shadow: none !important; }
+body.web .backdrop { border-radius: 0; }
+/* iOS: 16px보다 작은 입력칸은 누를 때 화면이 확대됨 */
+body.web input, body.web select, body.web textarea { font-size: 16px !important; }
+
+/* PC 전용 기능 숨김 */
+body.web #opacity, body.web #btn-pin, body.web #btn-hide, body.web #btn-icons, body.web #editpill, body.web #palette,
+body.web #icon-layer, body.web #drop-hint, body.web #set-hint, body.web .syncbox .hint:not(.web-hint),
+body.web .set-row:has(#s-desk), body.web label:has(#s-sound), body.web label:has(#s-auto), body.web label:has(#s-autopdf),
+body.web .row:has(#s-pdf-now), body.web #s-clear-icons, body.web #s-quit, body.web #f-locsearch { display: none !important; }
+body.web .syncbox .web-hint { display: block; }
+
+/* 머리줄: 손가락 크기 */
+body.web #top { height: 64px; }
+body.web .arrow { width: 44px; height: 44px; }
+body.web #title { font-size: 20px; }
+body.web .hb { width: 44px; height: 44px; }
+body.web .hb svg { width: 24px; height: 24px; }
+body.web .vm { height: 40px; }
+body.web .vm button { height: 34px; padding: 0 14px; font-size: 14px; }
+body.web .center .todaybtn { height: 36px; padding: 0 16px; border-radius: 18px; font-size: 14px; }
+body.web #sync-ind { font-size: 20px; padding: 0 8px; cursor: pointer; }
+body.need-login #sync-ind { color: var(--red); animation: needlogin 1.6s ease-in-out infinite; }
+@keyframes needlogin { 50% { opacity: .35; } }
+
+/* 달력 칸: 줄 높이 23px (app.js 의 WEB 계산과 같음) */
+body.web .dhead { min-height: 26px; }
+body.web .dnum { font-size: 15px; }
+body.web .bar, body.web .gap { height: 21.6px; line-height: 21.6px; font-size: 13px; }
+body.web .evs { gap: 1.4px; }
+body.web .tev { height: 21.6px; font-size: 13px; }
+body.web .more { font-size: 13px; line-height: 21px; }
+body.web .bar:hover, body.web .tev:hover { filter: none; }
+body.web .cell:hover:not(.sel) { background: rgb(var(--cell) / var(--a)); }
+body.web .cell.sun:hover:not(.sel) { background: rgb(var(--sun) / var(--a)); }
+body.web .cell.sat:hover:not(.sel) { background: rgb(var(--sat) / var(--a)); }
+
+/* 사이드바(그날 목록) */
+body.web #side { width: 300px; padding: 10px; }
+body.web .si { padding: 8px 8px; }
+body.web .si .tt { font-size: 15px; }
+body.web .si .ck { width: 26px; height: 26px; border-radius: 13px; top: 7px; font-size: 14px; }
+body.web .si:not(.has-stk) { padding-right: 40px; padding-left: 40px; }
+body.web .si.has-stk { padding-left: 78px; }
+body.web .search { height: 42px; }
+body.web .side-nav { font-size: 17px; }
+body.web .side-nav select { padding: 6px 8px; }
+body.web #side-list { -webkit-overflow-scrolling: touch; }
+
+/* 세로 화면: 달력 위, 목록 아래 */
+@media (orientation: portrait) {
+  body.web #app { flex-direction: column; }
+  body.web #side { width: auto; height: 34%; border-left: 0; border-top: 1px solid rgb(var(--line)); }
+}
+
+/* 새 일정 버튼: 화면 오른쪽 아래 (목록 위) */
+#web-add { display: none; }
+body.web #web-add { display: grid; place-items: center; position: fixed; z-index: 40; width: 60px; height: 60px; border-radius: 30px; border: 0;
+  right: calc(20px + env(safe-area-inset-right)); bottom: calc(20px + env(safe-area-inset-bottom)); background: #1f2937; color: #fff; font-size: 34px; font-weight: 300; line-height: 1;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .25); }
+:root.dark body.web #web-add { background: #f3f4f6; color: #111827; }
+body.web #side-list { padding-bottom: 84px; }
+body.web .si > .stk { right: 44px; top: 50%; bottom: auto; transform: translateY(-50%); }
+body.web .si.has-stk { padding-right: 78px; }
+
+/* 입력창·메뉴: 손가락 크기 */
+body.web .modal { width: min(460px, calc(100vw - 24px)); max-height: calc(100vh - 40px); border-radius: 14px; padding: 22px; }
+body.web .modal.wide { width: min(720px, calc(100vw - 24px)); }
+body.web .ctx button.it { padding: 12px 14px; font-size: 16px; }
+body.web .ctx { min-width: 190px; border-radius: 12px; }
+body.web .btn { min-height: 44px; font-size: 15px; }
+body.web .pill { min-height: 38px; }
+body.web .chk input { width: 20px; height: 20px; }
+body.web input[type=date] { min-width: 150px; }
